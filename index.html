@@ -3,62 +3,118 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบเบิกจ่ายอุปกรณ์ห้องแลป</title>
+  <title>ระบบเบิกจ่ายอุปกรณ์สำนักงาน</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Supabase JS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Prompt', sans-serif; }
+
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-in { animation: fadeInUp 0.4s ease both; }
+
+    @keyframes toastIn { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(24px); } }
+    .animate-toast-in { animation: toastIn 0.25s ease both; }
+    .animate-toast-out { animation: toastOut 0.2s ease both; }
+
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.96) translateY(6px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .animate-modal-in { animation: modalIn 0.2s ease both; }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
+  <!-- Toast container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2 items-end pointer-events-none"></div>
+
   <!-- Navbar -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+  <header class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
       <div class="flex items-center space-x-3">
-        <span class="text-2xl">🧪</span>
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-sm text-white">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>
+        </div>
         <div>
-          <h1 class="text-base sm:text-lg font-semibold text-slate-800">ระบบเบิกจ่ายอุปกรณ์แลป</h1>
-          <p class="text-xs text-slate-500">Civil Engineering Lab Inventory</p>
+          <h1 class="text-base sm:text-lg font-bold text-slate-800 leading-tight">ระบบเบิกจ่ายอุปกรณ์สำนักงาน</h1>
+          <p class="text-xs text-slate-400">TTC Office Inventory System</p>
         </div>
       </div>
-      
-      <div class="flex items-center space-x-2">
+
+      <div class="flex items-center gap-2 max-w-full">
         <!-- Tab Buttons -->
-        <button onclick="switchTab('catalog')" id="btn-tab-catalog" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white transition">📦 รายการอุปกรณ์</button>
-        
-        <!-- Admin-Only Tabs (ซ่อนไว้เริ่มต้น) -->
-        <button onclick="switchTab('return')" id="btn-tab-return" class="hidden px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition">📥 รับคืนอุปกรณ์</button>
-        <button onclick="switchTab('restock')" id="btn-tab-restock" class="hidden px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition">➕ เพิ่มอุปกรณ์</button>
-        <button onclick="switchTab('alerts')" id="btn-tab-alerts" class="hidden px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition">⚠️ สต็อกต่ำ</button>
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          <button onclick="switchTab('catalog')" id="btn-tab-catalog" class="px-3.5 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-sm transition whitespace-nowrap flex items-center gap-1.5"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>รายการอุปกรณ์</button>
+
+          <!-- Admin-Only Tabs (ซ่อนไว้เริ่มต้น) -->
+          <button onclick="switchTab('return')" id="btn-tab-return" class="hidden px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap flex items-center gap-1.5"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 3h4l2-3h4"/><path d="M4 12l1.5-7h13L20 12"/><path d="M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/></svg>รับคืนอุปกรณ์</button>
+          <button onclick="switchTab('restock')" id="btn-tab-restock" class="hidden px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap flex items-center gap-1.5"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>เพิ่มอุปกรณ์</button>
+          <button onclick="switchTab('alerts')" id="btn-tab-alerts" class="hidden px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap flex items-center gap-1.5"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2 20h20L12 4z"/><path d="M12 10v4"/><circle cx="12" cy="16.7" r="0.6" fill="currentColor" stroke="none"/></svg>สต็อกต่ำ</button>
+        </div>
 
         <!-- Admin Auth Button -->
-        <button onclick="toggleAdminAuth()" id="btn-admin-auth" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 text-slate-600 hover:bg-slate-100 transition">🔒 เจ้าหน้าที่</button>
+        <button onclick="toggleAdminAuth()" id="btn-admin-auth" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 text-slate-600 hover:bg-slate-100 transition whitespace-nowrap flex items-center gap-1.5"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>เจ้าหน้าที่</span></button>
       </div>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 py-6">
+  <main class="max-w-7xl mx-auto px-4 py-6">
 
     <!-- TAB 1: Catalog (ทุกคนเข้าถึงได้) -->
     <section id="tab-catalog" class="block">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-lg sm:text-xl font-semibold text-slate-800">รายการอุปกรณ์พร้อมเบิก</h2>
-        <button onclick="fetchEquipments()" class="text-xs sm:text-sm text-blue-600 hover:underline">🔄 รีเฟรช</button>
+
+      <!-- Stats -->
+      <div id="stats-row" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
+
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <h2 class="text-lg sm:text-xl font-bold text-slate-800">รายการอุปกรณ์พร้อมเบิก</h2>
+        <button onclick="fetchEquipments()" class="text-xs sm:text-sm text-indigo-600 hover:underline self-start sm:self-auto inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h5"/><path d="M20 20v-5h-5"/><path d="M5.5 9a7 7 0 0 1 12.3-3.5M18.5 15a7 7 0 0 1-12.3 3.5"/></svg>รีเฟรช</button>
       </div>
-      <div id="equipment-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        <p class="text-slate-400 col-span-3 text-center py-10">กำลังโหลดข้อมูลอุปกรณ์...</p>
+
+      <!-- Type Filter -->
+      <div class="flex items-center gap-2 mb-4 overflow-x-auto no-scrollbar">
+        <button onclick="setTypeFilter('all')" id="type-filter-all" class="px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-800 text-white transition whitespace-nowrap">ทั้งหมด</button>
+        <button onclick="setTypeFilter('BORROW')" id="type-filter-BORROW" class="px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap flex items-center gap-1.5"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h5"/><path d="M20 20v-5h-5"/><path d="M5.5 9a7 7 0 0 1 12.3-3.5M18.5 15a7 7 0 0 1-12.3 3.5"/></svg>ยืม-คืน</button>
+        <button onclick="setTypeFilter('CONSUME')" id="type-filter-CONSUME" class="px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap flex items-center gap-1.5"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>ใช้แล้วหมดไป</button>
+      </div>
+
+      <!-- Search & Filter -->
+      <div class="flex flex-col sm:flex-row gap-3 mb-6">
+        <div class="relative flex-1">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg></span>
+          <input type="text" id="search-input" oninput="filterAndRenderCatalog()" placeholder="ค้นหาชื่อหรือรหัสอุปกรณ์..." class="w-full pl-9 pr-3 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+        </div>
+        <select id="category-filter" onchange="filterAndRenderCatalog()" class="px-3 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white sm:w-56">
+          <option value="all">ทุกหมวดหมู่</option>
+        </select>
+      </div>
+
+      <div id="equipment-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <!-- Skeleton loading state -->
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden animate-pulse">
+          <div class="h-44 bg-slate-200"></div>
+          <div class="p-4 space-y-3"><div class="h-3 bg-slate-200 rounded w-1/3"></div><div class="h-4 bg-slate-200 rounded w-3/4"></div><div class="h-3 bg-slate-200 rounded w-1/2"></div></div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden animate-pulse">
+          <div class="h-44 bg-slate-200"></div>
+          <div class="p-4 space-y-3"><div class="h-3 bg-slate-200 rounded w-1/3"></div><div class="h-4 bg-slate-200 rounded w-3/4"></div><div class="h-3 bg-slate-200 rounded w-1/2"></div></div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden animate-pulse hidden sm:block">
+          <div class="h-44 bg-slate-200"></div>
+          <div class="p-4 space-y-3"><div class="h-3 bg-slate-200 rounded w-1/3"></div><div class="h-4 bg-slate-200 rounded w-3/4"></div><div class="h-3 bg-slate-200 rounded w-1/2"></div></div>
+        </div>
       </div>
     </section>
 
     <!-- TAB 2: Return Items (Admin Only) -->
     <section id="tab-return" class="hidden">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg sm:text-xl font-semibold text-slate-800">รายการที่อยู่ระหว่างการยืม (รอตรวจรับคืน)</h2>
-        <button onclick="fetchActiveBorrows()" class="text-xs sm:text-sm text-blue-600 hover:underline">🔄 รีเฟรช</button>
+        <h2 class="text-lg sm:text-xl font-bold text-slate-800">รายการที่อยู่ระหว่างการยืม (รอตรวจรับคืน)</h2>
+        <button onclick="fetchActiveBorrows()" class="text-xs sm:text-sm text-indigo-600 hover:underline inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h5"/><path d="M20 20v-5h-5"/><path d="M5.5 9a7 7 0 0 1 12.3-3.5M18.5 15a7 7 0 0 1-12.3 3.5"/></svg>รีเฟรช</button>
       </div>
       <div id="return-list" class="space-y-3 max-w-3xl">
         <p class="text-slate-400 py-6">กำลังโหลดข้อมูลการยืม...</p>
@@ -68,83 +124,191 @@
     <!-- TAB 3: Add Equipment (Admin Only) -->
     <section id="tab-restock" class="hidden">
       <div class="max-w-xl mx-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <h2 class="text-lg sm:text-xl font-semibold mb-4 text-slate-800">เพิ่มอุปกรณ์ใหม่เข้าระบบ</h2>
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div>
+          <h2 class="text-lg sm:text-xl font-bold text-slate-800">เพิ่มอุปกรณ์ใหม่เข้าระบบ</h2>
+        </div>
         <form id="add-form" class="space-y-4" onsubmit="handleAddEquipment(event)">
           <div>
-            <label class="block text-xs font-medium mb-1">รหัสอุปกรณ์ *</label>
-            <input type="text" id="add-code" required placeholder="เช่น LAB-GEO-001" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <label class="block text-xs font-medium mb-1 text-slate-600">รหัสอุปกรณ์ *</label>
+            <input type="text" id="add-code" required placeholder="เช่น LAB-GEO-001" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
           </div>
           <div>
-            <label class="block text-xs font-medium mb-1">ชื่ออุปกรณ์ *</label>
-            <input type="text" id="add-name" required placeholder="เช่น ชุดทดสอบความถ่วงจำเพาะดิน" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <label class="block text-xs font-medium mb-1 text-slate-600">ชื่ออุปกรณ์ *</label>
+            <input type="text" id="add-name" required placeholder="เช่น ชุดทดสอบความถ่วงจำเพาะดิน" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
           </div>
           <div>
-            <label class="block text-xs font-medium mb-1">หมวดหมู่</label>
-            <select id="add-category" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-              <option value="ปฐพีกลศาสตร์">ปฐพีกลศาสตร์</option>
-              <option value="วัสดุงานทาง">วัสดุงานทาง</option>
-              <option value="คอนกรีต/โครงสร้าง">คอนกรีต/โครงสร้าง</option>
-              <option value="เครื่องมือวัดทั่วไป">เครื่องมือวัดทั่วไป</option>
+            <label class="block text-xs font-medium mb-1 text-slate-600">ประเภทอุปกรณ์ *</label>
+            <select id="add-item-type" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="BORROW">ยืม-คืน (ครุภัณฑ์/เครื่องมือ)</option>
+              <option value="CONSUME">ใช้แล้วหมดไป (วัสดุสิ้นเปลือง)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium mb-1 text-slate-600">หมวดหมู่</label>
+            <select id="add-category" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="เครื่องเขียน/วัสดุสำนักงาน">เครื่องเขียน/วัสดุสำนักงาน</option>
+              <option value="อุปกรณ์ไอที/คอมพิวเตอร์">อุปกรณ์ไอที/คอมพิวเตอร์</option>
+              <option value="เฟอร์นิเจอร์สำนักงาน">เฟอร์นิเจอร์สำนักงาน</option>
+              <option value="เครื่องใช้ไฟฟ้า">เครื่องใช้ไฟฟ้า</option>
+              <option value="อื่นๆ">อื่นๆ</option>
             </select>
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-medium mb-1">จำนวนทั้งหมด (ชิ้น)</label>
-              <input type="number" id="add-total" min="1" value="1" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+              <label class="block text-xs font-medium mb-1 text-slate-600">จำนวนทั้งหมด (ชิ้น)</label>
+              <input type="number" id="add-total" min="1" value="1" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
             </div>
             <div>
-              <label class="block text-xs font-medium mb-1">จุดเตือนสต็อกต่ำ (ชิ้น)</label>
-              <input type="number" id="add-alert" min="1" value="2" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+              <label class="block text-xs font-medium mb-1 text-slate-600">จุดเตือนสต็อกต่ำ (ชิ้น)</label>
+              <input type="number" id="add-alert" min="1" value="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
             </div>
           </div>
           <div>
-            <label class="block text-xs font-medium mb-1">รูปภาพอุปกรณ์</label>
-            <input type="file" id="add-file" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+            <label class="block text-xs font-medium mb-1 text-slate-600">รูปภาพอุปกรณ์</label>
+            <input type="file" id="add-file" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
           </div>
-          <button type="submit" id="btn-submit" class="w-full py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">บันทึกอุปกรณ์</button>
+          <button type="submit" id="btn-submit" class="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition shadow-sm">บันทึกอุปกรณ์</button>
         </form>
       </div>
     </section>
 
     <!-- TAB 4: Alerts (Admin Only) -->
     <section id="tab-alerts" class="hidden">
-      <h2 class="text-lg sm:text-xl font-semibold mb-4 text-slate-800">อุปกรณ์ที่ใกล้หมดสต็อก</h2>
+      <h2 class="text-lg sm:text-xl font-bold mb-4 text-slate-800">อุปกรณ์ที่ใกล้หมดสต็อก</h2>
       <div id="alerts-list" class="space-y-3 max-w-2xl"></div>
     </section>
 
+    <footer class="mt-12 pt-6 border-t border-slate-200 text-center text-xs text-slate-400">
+      ระบบจัดการวัสดุ-ครุภัณฑ์สำนักงาน · TTC Office Inventory System
+    </footer>
   </main>
 
   <!-- Modal ยืมอุปกรณ์ -->
-  <div id="borrow-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
-      <h3 class="text-base sm:text-lg font-semibold text-slate-800 mb-1" id="modal-item-name">ยืมอุปกรณ์</h3>
+  <div id="borrow-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl animate-modal-in">
+      <div class="flex items-start justify-between mb-1">
+        <h3 class="text-base sm:text-lg font-bold text-slate-800" id="modal-item-name">ยืมอุปกรณ์</h3>
+        <button onclick="closeBorrowModal()" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
       <p class="text-xs text-slate-500 mb-4" id="modal-item-info"></p>
-      
+
       <form id="borrow-form" onsubmit="handleBorrowSubmit(event)" class="space-y-3">
         <input type="hidden" id="borrow-item-id">
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">ชื่อ-สกุล / รหัสนิสิต *</label>
-          <input type="text" id="borrow-name" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="text" id="borrow-name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">เบอร์ติดต่อ / Email</label>
-          <input type="text" id="borrow-contact" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="text" id="borrow-contact" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">จำนวนที่ยืม</label>
-            <input type="number" id="borrow-qty" min="1" value="1" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="number" id="borrow-qty" min="1" value="1" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">กำหนดส่งคืน</label>
-            <input type="date" id="borrow-date" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="date" id="borrow-date" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
         </div>
         <div class="flex space-x-2 pt-3">
-          <button type="button" onclick="closeBorrowModal()" class="w-1/2 py-2 border rounded-lg text-sm font-medium hover:bg-slate-50">ยกเลิก</button>
-          <button type="submit" id="btn-confirm-borrow" class="w-1/2 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">ยืนยันการยืม</button>
+          <button type="button" onclick="closeBorrowModal()" class="w-1/2 py-2 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50">ยกเลิก</button>
+          <button type="submit" id="btn-confirm-borrow" class="w-1/2 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-sm font-medium hover:opacity-90 shadow-sm">ยืนยันการยืม</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal เบิกวัสดุใช้แล้วหมดไป -->
+  <div id="withdraw-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl animate-modal-in">
+      <div class="flex items-start justify-between mb-1">
+        <h3 class="text-base sm:text-lg font-bold text-slate-800" id="withdraw-item-name">เบิกวัสดุ</h3>
+        <button onclick="closeWithdrawModal()" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <p class="text-xs text-slate-500 mb-4" id="withdraw-item-info"></p>
+
+      <form id="withdraw-form" onsubmit="handleWithdrawSubmit(event)" class="space-y-3">
+        <input type="hidden" id="withdraw-item-id">
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">ชื่อ-สกุล / หน่วยงานที่เบิก *</label>
+          <input type="text" id="withdraw-name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-fuchsia-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">เบอร์ติดต่อ / Email</label>
+          <input type="text" id="withdraw-contact" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-fuchsia-500">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">จำนวนที่เบิก</label>
+            <input type="number" id="withdraw-qty" min="1" value="1" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-fuchsia-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">หมายเหตุ (ถ้ามี)</label>
+            <input type="text" id="withdraw-note" placeholder="เช่น ใช้ในงาน..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-fuchsia-500">
+          </div>
+        </div>
+        <div class="flex space-x-2 pt-3">
+          <button type="button" onclick="closeWithdrawModal()" class="w-1/2 py-2 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50">ยกเลิก</button>
+          <button type="submit" id="btn-confirm-withdraw" class="w-1/2 py-2 bg-gradient-to-r from-fuchsia-600 to-rose-500 text-white rounded-lg text-sm font-medium hover:opacity-90 shadow-sm">ยืนยันการเบิก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal เติมสต็อก (Admin) -->
+  <div id="restock-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-[80]">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl animate-modal-in">
+      <div class="flex items-start justify-between mb-1">
+        <h3 class="text-base font-bold text-slate-800" id="restock-item-name">เติมสต็อก</h3>
+        <button onclick="closeRestockModal()" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <p class="text-xs text-slate-500 mb-4" id="restock-item-info"></p>
+
+      <form id="restock-form" onsubmit="handleRestockSubmit(event)" class="space-y-3">
+        <input type="hidden" id="restock-item-id">
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">จำนวนที่รับเข้าเพิ่ม *</label>
+          <input type="number" id="restock-qty" min="1" value="1" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <div class="flex space-x-2 pt-3">
+          <button type="button" onclick="closeRestockModal()" class="w-1/2 py-2 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50">ยกเลิก</button>
+          <button type="submit" class="w-1/2 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 shadow-sm">ยืนยันเติมสต็อก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal เข้าสู่ระบบเจ้าหน้าที่ -->
+  <div id="admin-login-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-[90]">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl animate-modal-in">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+        <div>
+          <h3 class="font-bold text-slate-800">เข้าสู่ระบบเจ้าหน้าที่</h3>
+          <p class="text-xs text-slate-500">กรอกรหัสผ่านเพื่อจัดการระบบ</p>
+        </div>
+      </div>
+      <form id="admin-login-form" onsubmit="handleAdminLogin(event)">
+        <input type="password" id="admin-password-input" required placeholder="รหัสผ่าน" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500 mb-4">
+        <div class="flex gap-2">
+          <button type="button" onclick="closeAdminLoginModal()" class="w-1/2 py-2 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50">ยกเลิก</button>
+          <button type="submit" class="w-1/2 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-sm font-medium hover:opacity-90 shadow-sm">เข้าสู่ระบบ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal ยืนยันทั่วไป -->
+  <div id="confirm-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-[90]">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl text-center animate-modal-in">
+      <p id="confirm-message" class="text-sm text-slate-700 mb-5"></p>
+      <div class="flex gap-2">
+        <button id="confirm-cancel-btn" class="w-1/2 py-2 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50">ยกเลิก</button>
+        <button id="confirm-ok-btn" class="w-1/2 py-2 bg-rose-600 text-white rounded-lg text-sm font-medium hover:bg-rose-700">ยืนยัน</button>
+      </div>
     </div>
   </div>
 
@@ -160,31 +324,116 @@
 
     let allEquipments = [];
     let isAdmin = false;
+    let currentTypeFilter = 'all';
+
+    // --- Icon system (line icons, Material/GAS-style) ---
+    const ICONS = {
+      box: '<path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/>',
+      refresh: '<path d="M4 4v5h5"/><path d="M20 20v-5h-5"/><path d="M5.5 9a7 7 0 0 1 12.3-3.5M18.5 15a7 7 0 0 1-12.3 3.5"/>',
+      plus: '<path d="M12 5v14M5 12h14"/>',
+      x: '<path d="M6 6l12 12M18 6L6 18"/>',
+      alert: '<path d="M12 4 2 20h20L12 4z"/><path d="M12 10v4"/><circle cx="12" cy="16.7" r="0.6" fill="currentColor" stroke="none"/>',
+      lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+      unlock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.2-2.4"/>',
+      search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/>',
+      check: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/>',
+      clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
+      xcircle: '<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>',
+      info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none"/>',
+      inbox: '<path d="M4 12h4l2 3h4l2-3h4"/><path d="M4 12l1.5-7h13L20 12"/><path d="M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/>',
+      pencil: '<path d="M4 20l1-4L16 5l3 3L8 19l-4 1z"/><path d="M14 7l3 3"/>',
+      desktop: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/>',
+      cabinet: '<path d="M6 4v9a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4"/><path d="M8 15v5M16 15v5"/><path d="M6 9h12"/>',
+      bolt: '<path d="M13 3 4 14h6l-1 7 9-11h-6l1-7z"/>',
+    };
+    function icon(name, cls = 'w-4 h-4') {
+      return `<svg class="${cls} inline-block shrink-0 align-[-3px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[name] || ICONS.box}</svg>`;
+    }
+
+    // --- Toast Notifications ---
+    function showToast(message, type = 'info') {
+      const styles = { success: 'bg-emerald-600', error: 'bg-rose-600', warning: 'bg-amber-500', info: 'bg-slate-800' };
+      const iconNames = { success: 'check', error: 'xcircle', warning: 'alert', info: 'info' };
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `${styles[type] || styles.info} text-white text-sm px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-toast-in max-w-xs pointer-events-auto`;
+      toast.innerHTML = `${icon(iconNames[type] || iconNames.info, 'w-4 h-4')}<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('animate-toast-out');
+        setTimeout(() => toast.remove(), 220);
+      }, 3200);
+    }
+
+    // --- Generic Confirm Modal ---
+    function showConfirm(message) {
+      return new Promise(resolve => {
+        const modal = document.getElementById('confirm-modal');
+        document.getElementById('confirm-message').textContent = message;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        const okBtn = document.getElementById('confirm-ok-btn');
+        const cancelBtn = document.getElementById('confirm-cancel-btn');
+        function cleanup(result) {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+          okBtn.removeEventListener('click', onOk);
+          cancelBtn.removeEventListener('click', onCancel);
+          resolve(result);
+        }
+        function onOk() { cleanup(true); }
+        function onCancel() { cleanup(false); }
+        okBtn.addEventListener('click', onOk);
+        cancelBtn.addEventListener('click', onCancel);
+      });
+    }
 
     // --- Admin Authentication ---
-    function toggleAdminAuth() {
+    async function toggleAdminAuth() {
       if (isAdmin) {
-        if (confirm("ต้องการออกจากโหมดเจ้าหน้าที่ใช่หรือไม่?")) {
-          isAdmin = false;
-          updateAdminUI();
-          switchTab('catalog');
-        }
+        const ok = await showConfirm("ต้องการออกจากโหมดเจ้าหน้าที่ใช่หรือไม่?");
+        if (!ok) return;
+        isAdmin = false;
+        updateAdminUI();
+        switchTab('catalog');
+        showToast("ออกจากระบบเจ้าหน้าที่แล้ว", "info");
       } else {
-        const pass = prompt("กรุณากรอกรหัสผ่านเจ้าหน้าที่ห้องแลป:");
-        if (pass === ADMIN_PASSWORD) {
-          isAdmin = true;
-          alert("เข้าสู่โหมดเจ้าหน้าที่สำเร็จ");
-          updateAdminUI();
-        } else if (pass !== null) {
-          alert("รหัสผ่านไม่ถูกต้อง");
-        }
+        openAdminLoginModal();
+      }
+    }
+
+    function openAdminLoginModal() {
+      const modal = document.getElementById('admin-login-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.getElementById('admin-password-input').focus();
+    }
+
+    function closeAdminLoginModal() {
+      const modal = document.getElementById('admin-login-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.getElementById('admin-login-form').reset();
+    }
+
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const pass = document.getElementById('admin-password-input').value;
+      if (pass === ADMIN_PASSWORD) {
+        isAdmin = true;
+        updateAdminUI();
+        closeAdminLoginModal();
+        showToast("เข้าสู่โหมดเจ้าหน้าที่สำเร็จ", "success");
+      } else {
+        showToast("รหัสผ่านไม่ถูกต้อง", "error");
+        document.getElementById('admin-password-input').value = '';
       }
     }
 
     function updateAdminUI() {
       const adminTabs = ['btn-tab-return', 'btn-tab-restock', 'btn-tab-alerts'];
       const authBtn = document.getElementById('btn-admin-auth');
-      
+
       adminTabs.forEach(id => {
         const el = document.getElementById(id);
         if (isAdmin) el.classList.remove('hidden');
@@ -192,12 +441,14 @@
       });
 
       if (isAdmin) {
-        authBtn.innerText = "🔓 ออกจากระบบ";
-        authBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 transition";
+        authBtn.innerHTML = `${icon('unlock', 'w-3.5 h-3.5')}<span>ออกจากระบบ</span>`;
+        authBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 transition whitespace-nowrap flex items-center gap-1.5";
       } else {
-        authBtn.innerText = "🔒 เจ้าหน้าที่";
-        authBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 text-slate-600 hover:bg-slate-100 transition";
+        authBtn.innerHTML = `${icon('lock', 'w-3.5 h-3.5')}<span>เจ้าหน้าที่</span>`;
+        authBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 text-slate-600 hover:bg-slate-100 transition whitespace-nowrap flex items-center gap-1.5";
       }
+
+      if (allEquipments.length > 0) filterAndRenderCatalog();
     }
 
     // --- Tab Switching ---
@@ -206,62 +457,171 @@
         const sec = document.getElementById(`tab-${t}`);
         const btn = document.getElementById(`btn-tab-${t}`);
         if (sec) sec.classList.add('hidden');
-        if (btn) btn.className = "px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+        if (btn) btn.className = "px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap";
       });
 
       const currentSec = document.getElementById(`tab-${tab}`);
       const currentBtn = document.getElementById(`btn-tab-${tab}`);
       if (currentSec) currentSec.classList.remove('hidden');
-      if (currentBtn) currentBtn.className = "px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white transition";
-      
+      if (currentBtn) currentBtn.className = "px-3.5 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-sm transition whitespace-nowrap";
+
       if (tab === 'catalog' || tab === 'alerts') fetchEquipments();
       if (tab === 'return') fetchActiveBorrows();
+    }
+
+    // --- Category helpers ---
+    function getCategoryColor(category) {
+      const map = {
+        'เครื่องเขียน/วัสดุสำนักงาน': 'bg-amber-100 text-amber-700 border-amber-200',
+        'อุปกรณ์ไอที/คอมพิวเตอร์': 'bg-sky-100 text-sky-700 border-sky-200',
+        'เฟอร์นิเจอร์สำนักงาน': 'bg-violet-100 text-violet-700 border-violet-200',
+        'เครื่องใช้ไฟฟ้า': 'bg-emerald-100 text-emerald-700 border-emerald-200',
+        'อื่นๆ': 'bg-slate-100 text-slate-600 border-slate-200',
+      };
+      return map[category] || 'bg-slate-100 text-slate-600 border-slate-200';
+    }
+
+    function getCategoryIcon(category, cls = 'w-10 h-10') {
+      const map = {
+        'เครื่องเขียน/วัสดุสำนักงาน': 'pencil',
+        'อุปกรณ์ไอที/คอมพิวเตอร์': 'desktop',
+        'เฟอร์นิเจอร์สำนักงาน': 'cabinet',
+        'เครื่องใช้ไฟฟ้า': 'bolt',
+        'อื่นๆ': 'box',
+      };
+      return icon(map[category] || 'box', cls);
+    }
+
+    function getTypeBadge(itemType) {
+      if (itemType === 'CONSUME') return `<span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border font-medium bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200">${icon('box', 'w-3 h-3')}ใช้แล้วหมดไป</span>`;
+      return `<span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border font-medium bg-cyan-100 text-cyan-700 border-cyan-200">${icon('refresh', 'w-3 h-3')}ยืม-คืน</span>`;
+    }
+
+    // --- Stats ---
+    function renderStats(items) {
+      const totalTypes = items.length;
+      const totalAvailable = items.reduce((s, i) => s + i.available_qty, 0);
+      const totalBorrowed = items.filter(i => i.item_type === 'BORROW').reduce((s, i) => s + (i.total_qty - i.available_qty), 0);
+      const lowStock = items.filter(i => i.available_qty <= i.min_stock_alert).length;
+
+      const stats = [
+        { label: 'รายการทั้งหมด', value: totalTypes, icon: 'box', color: 'text-slate-700 bg-slate-100' },
+        { label: 'พร้อมใช้งาน', value: totalAvailable, icon: 'check', color: 'text-emerald-700 bg-emerald-50' },
+        { label: 'อยู่ระหว่างยืม', value: totalBorrowed, icon: 'clock', color: 'text-indigo-700 bg-indigo-50' },
+        { label: 'สต็อกต่ำ', value: lowStock, icon: 'alert', color: 'text-amber-700 bg-amber-50' },
+      ];
+
+      document.getElementById('stats-row').innerHTML = stats.map(s => `
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-3 shadow-sm">
+          <div class="w-10 h-10 rounded-xl ${s.color} flex items-center justify-center shrink-0">${icon(s.icon, 'w-5 h-5')}</div>
+          <div>
+            <p class="text-xs text-slate-400">${s.label}</p>
+            <p class="text-lg font-bold text-slate-800">${s.value}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function populateCategoryFilter(items) {
+      const sel = document.getElementById('category-filter');
+      const current = sel.value || 'all';
+      const cats = [...new Set(items.map(i => i.category))];
+      sel.innerHTML = '<option value="all">ทุกหมวดหมู่</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+      if (cats.includes(current)) sel.value = current;
+    }
+
+    function setTypeFilter(type) {
+      currentTypeFilter = type;
+      ['all', 'BORROW', 'CONSUME'].forEach(t => {
+        const btn = document.getElementById(`type-filter-${t}`);
+        if (!btn) return;
+        const layout = t === 'all' ? "whitespace-nowrap" : "whitespace-nowrap flex items-center gap-1.5";
+        btn.className = `px-3.5 py-1.5 rounded-lg text-sm font-medium transition ${layout} ${t === type ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`;
+      });
+      filterAndRenderCatalog();
+    }
+
+    function filterAndRenderCatalog() {
+      const q = document.getElementById('search-input').value.trim().toLowerCase();
+      const cat = document.getElementById('category-filter').value;
+      let filtered = allEquipments;
+      if (currentTypeFilter !== 'all') filtered = filtered.filter(i => i.item_type === currentTypeFilter);
+      if (cat !== 'all') filtered = filtered.filter(i => i.category === cat);
+      if (q) filtered = filtered.filter(i => i.name.toLowerCase().includes(q) || i.code.toLowerCase().includes(q));
+      renderCatalog(filtered);
     }
 
     // --- Catalog ---
     async function fetchEquipments() {
       const grid = document.getElementById('equipment-grid');
+      grid.innerHTML = Array(4).fill(`
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden animate-pulse">
+          <div class="h-44 bg-slate-200"></div>
+          <div class="p-4 space-y-3"><div class="h-3 bg-slate-200 rounded w-1/3"></div><div class="h-4 bg-slate-200 rounded w-3/4"></div><div class="h-3 bg-slate-200 rounded w-1/2"></div></div>
+        </div>
+      `).join('');
+
       const { data, error } = await db.from('equipments').select('*').order('created_at', { ascending: false });
 
       if (error) {
-        alert('เกิดข้อผิดพลาด: ' + error.message);
+        showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
         return;
       }
       allEquipments = data;
-      renderCatalog(data);
+      renderStats(data);
+      populateCategoryFilter(data);
+      filterAndRenderCatalog();
       renderAlerts(data);
     }
 
     function renderCatalog(items) {
       const grid = document.getElementById('equipment-grid');
       if (items.length === 0) {
-        grid.innerHTML = '<p class="text-slate-400 col-span-3 text-center py-10">ยังไม่มีอุปกรณ์ในระบบ</p>';
+        grid.innerHTML = `
+          <div class="col-span-full flex flex-col items-center justify-center py-16 text-center text-slate-300">
+            ${icon('search', 'w-12 h-12 mb-3')}
+            <p class="text-slate-400">ไม่พบอุปกรณ์ที่ตรงกับเงื่อนไข</p>
+          </div>`;
         return;
       }
 
-      grid.innerHTML = items.map(item => {
-        const img = item.image_url || 'https://via.placeholder.com/300x200?text=No+Image';
+      grid.innerHTML = items.map((item, idx) => {
+        const img = item.image_url;
         const isAvail = item.available_qty > 0;
+        const isLow = item.available_qty > 0 && item.available_qty <= item.min_stock_alert;
+        const isConsume = item.item_type === 'CONSUME';
+        const catColor = getCategoryColor(item.category);
+        const actionLabel = isConsume ? 'เบิก' : 'ยืม';
+        const actionIcon = isConsume ? 'box' : 'refresh';
+        const actionFn = isConsume ? 'openWithdrawModal' : 'openBorrowModal';
+        const actionColor = isConsume ? 'bg-fuchsia-600 hover:bg-fuchsia-700' : 'bg-indigo-600 hover:bg-indigo-700';
         return `
-          <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
-            <div class="h-44 bg-slate-100 overflow-hidden">
-              <img src="${img}" alt="${item.name}" class="w-full h-full object-cover">
+          <div class="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col animate-fade-in" style="animation-delay:${Math.min(idx, 12) * 40}ms">
+            <div class="h-44 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden relative">
+              ${img
+                ? `<img src="${img}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">`
+                : `<div class="w-full h-full flex items-center justify-center text-slate-400">${getCategoryIcon(item.category, 'w-12 h-12')}</div>`}
+              ${isLow ? `<span class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-bold shadow">สต็อกต่ำ</span>` : ''}
             </div>
             <div class="p-4 flex-1 flex flex-col justify-between">
               <div>
-                <span class="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">${item.category}</span>
-                <h3 class="font-semibold text-slate-800 text-base mt-2">${item.name}</h3>
-                <p class="text-xs text-slate-400">รหัส: ${item.code}</p>
-              </div>
-              <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                <div>
-                  <span class="text-xs text-slate-400 block">คงเหลือ</span>
-                  <span class="font-bold ${isAvail ? 'text-emerald-600' : 'text-rose-500'} text-sm">${item.available_qty} / ${item.total_qty} ชิ้น</span>
+                <div class="flex flex-wrap gap-1">
+                  <span class="inline-block text-[11px] px-2 py-0.5 rounded-full border font-medium ${catColor}">${item.category}</span>
+                  ${getTypeBadge(item.item_type)}
                 </div>
-                <button onclick="openBorrowModal('${item.id}')" ${!isAvail ? 'disabled' : ''} class="px-4 py-1.5 rounded-lg text-xs font-semibold ${isAvail ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-100 text-slate-400 cursor-not-allowed'} transition">
-                  ${isAvail ? 'ยืมอุปกรณ์' : 'หมด'}
+                <h3 class="font-semibold text-slate-800 text-base mt-2 leading-snug">${item.name}</h3>
+                <p class="text-xs text-slate-400 mt-0.5">รหัส: ${item.code}</p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full ${isAvail ? 'bg-emerald-500' : 'bg-rose-400'}"></span>
+                  <span class="text-xs text-slate-500">คงเหลือ <b class="${isAvail ? 'text-emerald-600' : 'text-rose-500'}">${item.available_qty}/${item.total_qty}</b></span>
+                </div>
+                <button onclick="${actionFn}('${item.id}')" ${!isAvail ? 'disabled' : ''} class="px-4 py-1.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 ${isAvail ? actionColor + ' text-white shadow-sm' : 'bg-slate-100 text-slate-400 cursor-not-allowed'} transition">
+                  ${isAvail ? icon(actionIcon, 'w-3.5 h-3.5') : ''}${isAvail ? actionLabel : 'หมด'}
                 </button>
               </div>
+              ${isAdmin && isConsume ? `<button onclick="openRestockModal('${item.id}')" class="mt-2 w-full text-xs text-emerald-700 border border-emerald-200 bg-emerald-50 rounded-lg py-1.5 hover:bg-emerald-100 transition font-medium inline-flex items-center justify-center gap-1.5">${icon('refresh', 'w-3.5 h-3.5')}เติมสต็อก</button>` : ''}
             </div>
           </div>
         `;
@@ -271,6 +631,8 @@
     // --- Return Items Management (Admin) ---
     async function fetchActiveBorrows() {
       const container = document.getElementById('return-list');
+      container.innerHTML = '<p class="text-slate-400 py-6">กำลังโหลดข้อมูลการยืม...</p>';
+
       const { data, error } = await db
         .from('borrow_records')
         .select(`id, quantity, expected_return_date, borrower_name, borrower_contact, equipment_id, equipments(name, code)`)
@@ -278,7 +640,7 @@
         .order('expected_return_date', { ascending: true });
 
       if (error) {
-        alert('โหลดข้อมูลล้มเหลว: ' + error.message);
+        showToast('โหลดข้อมูลล้มเหลว: ' + error.message, 'error');
         return;
       }
 
@@ -292,17 +654,18 @@
           <div>
             <h4 class="font-semibold text-slate-800">${record.equipments?.name || 'อุปกรณ์'} (${record.equipments?.code})</h4>
             <p class="text-xs text-slate-600">ผู้ยืม: <span class="font-medium text-slate-800">${record.borrower_name}</span> | ติดต่อ: ${record.borrower_contact || '-'}</p>
-            <p class="text-xs text-slate-500">จำนวน: <span class="font-bold text-blue-600">${record.quantity} ชิ้น</span> | กำหนดคืน: <span class="font-medium text-rose-600">${record.expected_return_date}</span></p>
+            <p class="text-xs text-slate-500">จำนวน: <span class="font-bold text-indigo-600">${record.quantity} ชิ้น</span> | กำหนดคืน: <span class="font-medium text-rose-600">${record.expected_return_date}</span></p>
           </div>
-          <button onclick="handleReturn('${record.id}', '${record.equipment_id}', ${record.quantity})" class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition">
-            ✅ ยืนยันรับคืน
+          <button onclick="handleReturn('${record.id}', '${record.equipment_id}', ${record.quantity})" class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition inline-flex items-center justify-center gap-1.5">
+            ${icon('check', 'w-3.5 h-3.5')}ยืนยันรับคืน
           </button>
         </div>
       `).join('');
     }
 
     async function handleReturn(recordId, equipId, qty) {
-      if (!confirm("ยืนยันว่าได้ตรวจรับอุปกรณ์คืนเรียบร้อยแล้ว?")) return;
+      const ok = await showConfirm("ยืนยันว่าได้ตรวจรับอุปกรณ์คืนเรียบร้อยแล้ว?");
+      if (!ok) return;
 
       // 1. อัปเดตสถานะบันทึกยืมเป็น RETURNED
       await db.from('borrow_records').update({ status: 'RETURNED', actual_return_date: new Date().toISOString() }).eq('id', recordId);
@@ -313,7 +676,7 @@
         await db.from('equipments').update({ available_qty: currentEquip.available_qty + qty }).eq('id', equipId);
       }
 
-      alert("บันทึกการรับคืนและเพิ่มสต็อกเรียบร้อยแล้ว");
+      showToast("บันทึกการรับคืนและเพิ่มสต็อกเรียบร้อยแล้ว", "success");
       fetchActiveBorrows();
     }
 
@@ -323,7 +686,7 @@
       const lowItems = items.filter(i => i.available_qty <= i.min_stock_alert);
 
       if (lowItems.length === 0) {
-        alertList.innerHTML = '<div class="p-4 bg-emerald-50 text-emerald-700 rounded-xl text-sm">✅ อุปกรณ์ทุกรายการมีสต็อกเพียงพอ</div>';
+        alertList.innerHTML = `<div class="p-4 bg-emerald-50 text-emerald-700 rounded-xl text-sm flex items-center gap-2">${icon('check', 'w-4 h-4')}อุปกรณ์ทุกรายการมีสต็อกเพียงพอ</div>`;
         return;
       }
 
@@ -347,11 +710,15 @@
       document.getElementById('modal-item-info').innerText = `รหัส: ${item.code} | พร้อมให้ยืม ${item.available_qty} ชิ้น`;
       document.getElementById('borrow-qty').max = item.available_qty;
       document.getElementById('borrow-date').value = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      document.getElementById('borrow-modal').classList.remove('hidden');
+      const modal = document.getElementById('borrow-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
     }
 
     function closeBorrowModal() {
-      document.getElementById('borrow-modal').classList.add('hidden');
+      const modal = document.getElementById('borrow-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
       document.getElementById('borrow-form').reset();
     }
 
@@ -376,14 +743,103 @@
       });
 
       if (error || data !== true) {
-        alert('ยืมไม่สำเร็จ: ' + (error ? error.message : 'สต็อกไม่เพียงพอ'));
+        showToast('ยืมไม่สำเร็จ: ' + (error ? error.message : 'สต็อกไม่เพียงพอ'), 'error');
       } else {
-        alert('🎉 บันทึกการยืมเรียบร้อย!');
+        showToast('บันทึกการยืมเรียบร้อย!', 'success');
         closeBorrowModal();
         fetchEquipments();
       }
       btn.innerText = "ยืนยันการยืม";
       btn.disabled = false;
+    }
+
+    // --- Withdraw Logic (ใช้แล้วหมดไป) ---
+    function openWithdrawModal(id) {
+      const item = allEquipments.find(i => i.id === id);
+      if (!item) return;
+      document.getElementById('withdraw-item-id').value = item.id;
+      document.getElementById('withdraw-item-name').innerText = `เบิก: ${item.name}`;
+      document.getElementById('withdraw-item-info').innerText = `รหัส: ${item.code} | คงเหลือ ${item.available_qty} ชิ้น`;
+      document.getElementById('withdraw-qty').max = item.available_qty;
+      const modal = document.getElementById('withdraw-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeWithdrawModal() {
+      const modal = document.getElementById('withdraw-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.getElementById('withdraw-form').reset();
+    }
+
+    async function handleWithdrawSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-confirm-withdraw');
+      btn.innerText = "กำลังบันทึก...";
+      btn.disabled = true;
+
+      const equipment_id = document.getElementById('withdraw-item-id').value;
+      const borrower_name = document.getElementById('withdraw-name').value;
+      const borrower_contact = document.getElementById('withdraw-contact').value;
+      const quantity = parseInt(document.getElementById('withdraw-qty').value);
+      const note = document.getElementById('withdraw-note').value;
+
+      const { data, error } = await db.rpc('withdraw_item', {
+        p_equipment_id: equipment_id,
+        p_borrower_name: borrower_name,
+        p_borrower_contact: borrower_contact,
+        p_quantity: quantity,
+        p_note: note
+      });
+
+      if (error || data !== true) {
+        showToast('เบิกไม่สำเร็จ: ' + (error ? error.message : 'สต็อกไม่เพียงพอ'), 'error');
+      } else {
+        showToast('บันทึกการเบิกเรียบร้อย!', 'success');
+        closeWithdrawModal();
+        fetchEquipments();
+      }
+      btn.innerText = "ยืนยันการเบิก";
+      btn.disabled = false;
+    }
+
+    // --- Restock Logic (Admin, ใช้แล้วหมดไป) ---
+    function openRestockModal(id) {
+      const item = allEquipments.find(i => i.id === id);
+      if (!item) return;
+      document.getElementById('restock-item-id').value = item.id;
+      document.getElementById('restock-item-name').innerText = `เติมสต็อก: ${item.name}`;
+      document.getElementById('restock-item-info').innerText = `รหัส: ${item.code} | ตอนนี้มี ${item.available_qty}/${item.total_qty} ชิ้น`;
+      const modal = document.getElementById('restock-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeRestockModal() {
+      const modal = document.getElementById('restock-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.getElementById('restock-form').reset();
+    }
+
+    async function handleRestockSubmit(e) {
+      e.preventDefault();
+      const equipment_id = document.getElementById('restock-item-id').value;
+      const add_qty = parseInt(document.getElementById('restock-qty').value);
+
+      const { data, error } = await db.rpc('restock_item', {
+        p_equipment_id: equipment_id,
+        p_add_qty: add_qty
+      });
+
+      if (error || data !== true) {
+        showToast('เติมสต็อกไม่สำเร็จ: ' + (error ? error.message : ''), 'error');
+      } else {
+        showToast('เติมสต็อกเรียบร้อย!', 'success');
+        closeRestockModal();
+        fetchEquipments();
+      }
     }
 
     // --- Add Equipment Logic ---
@@ -395,6 +851,7 @@
 
       const code = document.getElementById('add-code').value;
       const name = document.getElementById('add-name').value;
+      const item_type = document.getElementById('add-item-type').value;
       const category = document.getElementById('add-category').value;
       const total_qty = parseInt(document.getElementById('add-total').value);
       const min_stock_alert = parseInt(document.getElementById('add-alert').value);
@@ -413,13 +870,13 @@
       }
 
       const { error } = await db.from('equipments').insert([{
-        code, name, category, total_qty, available_qty: total_qty, min_stock_alert, image_url
+        code, name, item_type, category, total_qty, available_qty: total_qty, min_stock_alert, image_url
       }]);
 
       if (error) {
-        alert('เกิดข้อผิดพลาด: ' + error.message);
+        showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
       } else {
-        alert('✅ เพิ่มอุปกรณ์เรียบร้อย!');
+        showToast('เพิ่มอุปกรณ์เรียบร้อย!', 'success');
         document.getElementById('add-form').reset();
         switchTab('catalog');
       }
