@@ -54,7 +54,11 @@
           <button onclick="switchTab('return')" id="btn-tab-return" class="hidden px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap flex items-center gap-1.5"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 3h4l2-3h4"/><path d="M4 12l1.5-7h13L20 12"/><path d="M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/></svg>รับคืนอุปกรณ์</button>
           <button onclick="switchTab('restock')" id="btn-tab-restock" class="hidden px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap flex items-center gap-1.5"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>เพิ่มอุปกรณ์</button>
           <button onclick="switchTab('alerts')" id="btn-tab-alerts" class="hidden px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap flex items-center gap-1.5"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2 20h20L12 4z"/><path d="M12 10v4"/><circle cx="12" cy="16.7" r="0.6" fill="currentColor" stroke="none"/></svg>สต็อกต่ำ</button>
+          <button onclick="switchTab('history')" id="btn-tab-history" class="hidden px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap flex items-center gap-1.5"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>ประวัติ</button>
         </div>
+
+        <!-- Self-service Return (Public) -->
+        <button onclick="openSelfReturnModal()" id="btn-self-return" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 text-slate-600 hover:bg-slate-100 transition whitespace-nowrap flex items-center gap-1.5"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 3h4l2-3h4"/><path d="M4 12l1.5-7h13L20 12"/><path d="M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/></svg><span>แจ้งคืนอุปกรณ์</span></button>
 
         <!-- Admin Auth Button -->
         <button onclick="toggleAdminAuth()" id="btn-admin-auth" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 text-slate-600 hover:bg-slate-100 transition whitespace-nowrap flex items-center gap-1.5"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>เจ้าหน้าที่</span></button>
@@ -187,6 +191,17 @@
       <div id="alerts-list" class="space-y-3 max-w-2xl"></div>
     </section>
 
+    <!-- TAB 5: History (Admin Only) -->
+    <section id="tab-history" class="hidden">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg sm:text-xl font-bold text-slate-800">ประวัติการยืม-คืน / เบิกใช้</h2>
+        <button onclick="fetchHistory()" class="text-xs sm:text-sm text-indigo-600 hover:underline inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h5"/><path d="M20 20v-5h-5"/><path d="M5.5 9a7 7 0 0 1 12.3-3.5M18.5 15a7 7 0 0 1-12.3 3.5"/></svg>รีเฟรช</button>
+      </div>
+      <div id="history-list" class="space-y-3 max-w-3xl">
+        <p class="text-slate-400 py-6">กำลังโหลดประวัติ...</p>
+      </div>
+    </section>
+
     <footer class="mt-12 pt-6 border-t border-slate-200 text-center text-xs text-slate-400 space-y-1">
       <p>ระบบจัดการวัสดุ-ครุภัณฑ์สำนักงาน · TTC Office Inventory System</p>
       <p>พัฒนาโดย รศ.ดร.อิทธิพล มีผล ภาควิชาครุศาสตร์โยธา มจพ.</p>
@@ -300,6 +315,84 @@
     </div>
   </div>
 
+  <!-- Modal แก้ไขอุปกรณ์ (Admin) -->
+  <div id="edit-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-[80] overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl animate-modal-in my-8">
+      <div class="flex items-start justify-between mb-4">
+        <h3 class="text-base sm:text-lg font-bold text-slate-800">แก้ไขอุปกรณ์</h3>
+        <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <form id="edit-form" onsubmit="handleEditSubmit(event)" class="space-y-3">
+        <input type="hidden" id="edit-item-id">
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">รหัสอุปกรณ์ *</label>
+          <input type="text" id="edit-code" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">ชื่ออุปกรณ์ *</label>
+          <input type="text" id="edit-name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">ประเภทอุปกรณ์ *</label>
+          <select id="edit-item-type" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="BORROW">ยืม-คืน (ครุภัณฑ์/เครื่องมือ)</option>
+            <option value="CONSUME">ใช้แล้วหมดไป (วัสดุสิ้นเปลือง)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">หมวดหมู่</label>
+          <select id="edit-category" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="เครื่องเขียน/วัสดุสำนักงาน">เครื่องเขียน/วัสดุสำนักงาน</option>
+            <option value="อุปกรณ์ไอที/คอมพิวเตอร์">อุปกรณ์ไอที/คอมพิวเตอร์</option>
+            <option value="เฟอร์นิเจอร์สำนักงาน">เฟอร์นิเจอร์สำนักงาน</option>
+            <option value="เครื่องใช้ไฟฟ้า">เครื่องใช้ไฟฟ้า</option>
+            <option value="อื่นๆ">อื่นๆ</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">จำนวนทั้งหมด</label>
+            <input type="number" id="edit-total" min="0" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">คงเหลือพร้อมใช้</label>
+            <input type="number" id="edit-available" min="0" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">จุดเตือนสต็อกต่ำ</label>
+          <input type="number" id="edit-alert" min="1" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">เปลี่ยนรูปภาพ (ถ้าต้องการ)</label>
+          <input type="file" id="edit-file" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+        </div>
+        <div class="flex space-x-2 pt-3">
+          <button type="button" onclick="closeEditModal()" class="w-1/2 py-2 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50">ยกเลิก</button>
+          <button type="submit" id="btn-confirm-edit" class="w-1/2 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-sm font-medium hover:opacity-90 shadow-sm">บันทึกการแก้ไข</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal แจ้งคืนอุปกรณ์ (Public, self-service) -->
+  <div id="self-return-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-[80]">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl animate-modal-in">
+      <div class="flex items-start justify-between mb-1">
+        <h3 class="text-base sm:text-lg font-bold text-slate-800">แจ้งคืนอุปกรณ์</h3>
+        <button onclick="closeSelfReturnModal()" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <p class="text-xs text-slate-500 mb-4">กรอกเบอร์โทรศัพท์ที่ใช้ตอนยืม เพื่อค้นหารายการที่ยืมค้างอยู่</p>
+
+      <form id="self-return-search-form" onsubmit="handleSelfReturnSearch(event)" class="flex gap-2 mb-4">
+        <input type="tel" id="self-return-phone" required placeholder="เบอร์โทรศัพท์" class="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 shadow-sm inline-flex items-center gap-1.5"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg>ค้นหา</button>
+      </form>
+
+      <div id="self-return-results" class="space-y-2 max-h-80 overflow-y-auto"></div>
+    </div>
+  </div>
+
   <!-- Modal เข้าสู่ระบบเจ้าหน้าที่ -->
   <div id="admin-login-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-[90]">
     <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl animate-modal-in">
@@ -364,6 +457,8 @@
       desktop: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/>',
       cabinet: '<path d="M6 4v9a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4"/><path d="M8 15v5M16 15v5"/><path d="M6 9h12"/>',
       bolt: '<path d="M13 3 4 14h6l-1 7 9-11h-6l1-7z"/>',
+      trash: '<path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>',
+      phone: '<path d="M6 3h3l2 5-2.5 2A11 11 0 0 0 13.5 15.5L15.5 13l5 2v3a2 2 0 0 1-2 2C10.5 20 4 13.5 4 5a2 2 0 0 1 2-2z"/>',
     };
     function icon(name, cls = 'w-4 h-4') {
       return `<svg class="${cls} inline-block shrink-0 align-[-3px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[name] || ICONS.box}</svg>`;
@@ -450,7 +545,7 @@
     }
 
     function updateAdminUI() {
-      const adminTabs = ['btn-tab-return', 'btn-tab-restock', 'btn-tab-alerts'];
+      const adminTabs = ['btn-tab-return', 'btn-tab-restock', 'btn-tab-alerts', 'btn-tab-history'];
       const authBtn = document.getElementById('btn-admin-auth');
 
       adminTabs.forEach(id => {
@@ -472,20 +567,21 @@
 
     // --- Tab Switching ---
     function switchTab(tab) {
-      ['catalog', 'return', 'restock', 'alerts'].forEach(t => {
+      ['catalog', 'return', 'restock', 'alerts', 'history'].forEach(t => {
         const sec = document.getElementById(`tab-${t}`);
         const btn = document.getElementById(`btn-tab-${t}`);
         if (sec) sec.classList.add('hidden');
-        if (btn) btn.className = "px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap";
+        if (btn) btn.className = "px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap flex items-center gap-1.5";
       });
 
       const currentSec = document.getElementById(`tab-${tab}`);
       const currentBtn = document.getElementById(`btn-tab-${tab}`);
       if (currentSec) currentSec.classList.remove('hidden');
-      if (currentBtn) currentBtn.className = "px-3.5 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-sm transition whitespace-nowrap";
+      if (currentBtn) currentBtn.className = "px-3.5 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-sm transition whitespace-nowrap flex items-center gap-1.5";
 
       if (tab === 'catalog' || tab === 'alerts') fetchEquipments();
       if (tab === 'return') fetchActiveBorrows();
+      if (tab === 'history') fetchHistory();
     }
 
     // --- Category helpers ---
@@ -616,6 +712,11 @@
                 ? `<img src="${img}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">`
                 : `<div class="w-full h-full flex items-center justify-center text-slate-400">${getCategoryIcon(item.category, 'w-8 h-8')}</div>`}
               ${isLow ? `<span class="absolute top-1 right-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-bold shadow">ต่ำ</span>` : ''}
+              ${isAdmin ? `
+              <div class="absolute top-1 left-1 flex gap-1">
+                <button onclick="event.stopPropagation(); openEditModal('${item.id}')" title="แก้ไข" class="w-6 h-6 rounded-md bg-white/90 backdrop-blur flex items-center justify-center text-slate-600 hover:bg-white shadow">${icon('pencil', 'w-3.5 h-3.5')}</button>
+                <button onclick="event.stopPropagation(); handleDeleteEquipment('${item.id}')" title="ลบ" class="w-6 h-6 rounded-md bg-white/90 backdrop-blur flex items-center justify-center text-rose-600 hover:bg-white shadow">${icon('trash', 'w-3.5 h-3.5')}</button>
+              </div>` : ''}
             </div>
             <div class="p-2.5 flex-1 flex flex-col justify-between gap-2">
               <div>
@@ -644,8 +745,8 @@
 
       const { data, error } = await db
         .from('borrow_records')
-        .select(`id, quantity, expected_return_date, borrower_name, borrower_contact, student_id, equipment_id, equipments(name, code)`)
-        .eq('status', 'BORROWED')
+        .select(`id, quantity, expected_return_date, borrower_name, borrower_contact, student_id, status, equipment_id, equipments(name, code)`)
+        .in('status', ['BORROWED', 'RETURN_REQUESTED'])
         .order('expected_return_date', { ascending: true });
 
       if (error) {
@@ -659,9 +760,12 @@
       }
 
       container.innerHTML = data.map(record => `
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div class="bg-white p-4 rounded-xl border ${record.status === 'RETURN_REQUESTED' ? 'border-sky-300 bg-sky-50/40' : 'border-slate-200'} shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
-            <h4 class="font-semibold text-slate-800">${record.equipments?.name || 'อุปกรณ์'} (${record.equipments?.code})</h4>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h4 class="font-semibold text-slate-800">${record.equipments?.name || 'อุปกรณ์'} (${record.equipments?.code})</h4>
+              ${record.status === 'RETURN_REQUESTED' ? '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-100 text-sky-700">ผู้ยืมแจ้งคืนแล้ว</span>' : ''}
+            </div>
             <p class="text-xs text-slate-600">ผู้ยืม: <span class="font-medium text-slate-800">${record.borrower_name}</span>${record.student_id ? ` (${record.student_id})` : ''} | โทร: ${record.borrower_contact || '-'}</p>
             <p class="text-xs text-slate-500">จำนวน: <span class="font-bold text-indigo-600">${record.quantity} ชิ้น</span> | กำหนดคืน: <span class="font-medium text-rose-600">${record.expected_return_date}</span></p>
           </div>
@@ -687,6 +791,49 @@
 
       showToast("บันทึกการรับคืนและเพิ่มสต็อกเรียบร้อยแล้ว", "success");
       fetchActiveBorrows();
+    }
+
+    // --- History (Admin) ---
+    function getHistoryBadge(record) {
+      if (record.record_type === 'CONSUME') return '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-fuchsia-100 text-fuchsia-700">เบิกใช้แล้ว</span>';
+      if (record.status === 'RETURNED') return '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-700">คืนแล้ว</span>';
+      if (record.status === 'RETURN_REQUESTED') return '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-100 text-sky-700">แจ้งคืนแล้ว รอตรวจสอบ</span>';
+      return '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-700">ยังไม่คืน</span>';
+    }
+
+    async function fetchHistory() {
+      const container = document.getElementById('history-list');
+      container.innerHTML = '<p class="text-slate-400 py-6">กำลังโหลดประวัติ...</p>';
+
+      const { data, error } = await db
+        .from('borrow_records')
+        .select(`id, quantity, borrow_date, expected_return_date, actual_return_date, borrower_name, borrower_contact, student_id, status, record_type, note, equipment_id, equipments(name, code)`)
+        .order('borrow_date', { ascending: false })
+        .limit(200);
+
+      if (error) {
+        showToast('โหลดประวัติล้มเหลว: ' + error.message, 'error');
+        return;
+      }
+
+      if (data.length === 0) {
+        container.innerHTML = '<div class="p-6 bg-slate-100 rounded-xl text-slate-500 text-center">ยังไม่มีประวัติการยืม-คืน/เบิกใช้</div>';
+        return;
+      }
+
+      container.innerHTML = data.map(record => `
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h4 class="font-semibold text-slate-800">${record.equipments?.name || 'อุปกรณ์'} (${record.equipments?.code || '-'})</h4>
+              ${getHistoryBadge(record)}
+            </div>
+            <p class="text-xs text-slate-600 mt-0.5">โดย: <span class="font-medium text-slate-800">${record.borrower_name}</span>${record.student_id ? ` (${record.student_id})` : ''} | โทร: ${record.borrower_contact || '-'}</p>
+            <p class="text-xs text-slate-500">จำนวน: <span class="font-bold text-indigo-600">${record.quantity} ชิ้น</span> | วันที่: ${new Date(record.borrow_date).toLocaleDateString('th-TH')}${record.expected_return_date ? ` | กำหนดคืน: ${record.expected_return_date}` : ''}${record.actual_return_date ? ` | คืนจริง: ${new Date(record.actual_return_date).toLocaleDateString('th-TH')}` : ''}</p>
+            ${record.note ? `<p class="text-xs text-slate-400 mt-0.5">หมายเหตุ: ${record.note}</p>` : ''}
+          </div>
+        </div>
+      `).join('');
     }
 
     // --- Alerts ---
@@ -896,6 +1043,160 @@
 
       btn.innerText = "บันทึกอุปกรณ์";
       btn.disabled = false;
+    }
+
+    // --- Edit Equipment Logic (Admin) ---
+    function openEditModal(id) {
+      const item = allEquipments.find(i => i.id === id);
+      if (!item) return;
+      document.getElementById('edit-item-id').value = item.id;
+      document.getElementById('edit-code').value = item.code;
+      document.getElementById('edit-name').value = item.name;
+      document.getElementById('edit-item-type').value = item.item_type;
+      document.getElementById('edit-category').value = item.category;
+      document.getElementById('edit-total').value = item.total_qty;
+      document.getElementById('edit-available').value = item.available_qty;
+      document.getElementById('edit-alert').value = item.min_stock_alert;
+      document.getElementById('edit-file').value = '';
+      const modal = document.getElementById('edit-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeEditModal() {
+      const modal = document.getElementById('edit-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.getElementById('edit-form').reset();
+    }
+
+    async function handleEditSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-confirm-edit');
+      btn.innerText = "กำลังบันทึก...";
+      btn.disabled = true;
+
+      const id = document.getElementById('edit-item-id').value;
+      const code = document.getElementById('edit-code').value;
+      const name = document.getElementById('edit-name').value;
+      const item_type = document.getElementById('edit-item-type').value;
+      const category = document.getElementById('edit-category').value;
+      const total_qty = parseInt(document.getElementById('edit-total').value);
+      const available_qty = parseInt(document.getElementById('edit-available').value);
+      const min_stock_alert = parseInt(document.getElementById('edit-alert').value);
+      const fileInput = document.getElementById('edit-file');
+
+      if (available_qty > total_qty) {
+        showToast('จำนวนคงเหลือต้องไม่มากกว่าจำนวนทั้งหมด', 'error');
+        btn.innerText = "บันทึกการแก้ไข";
+        btn.disabled = false;
+        return;
+      }
+
+      const updatePayload = { code, name, item_type, category, total_qty, available_qty, min_stock_alert };
+
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const filePath = `${code}_${Date.now()}_${file.name}`;
+        const { error: uploadError } = await db.storage.from('lab-images').upload(filePath, file);
+        if (!uploadError) {
+          const { data: publicUrlData } = db.storage.from('lab-images').getPublicUrl(filePath);
+          updatePayload.image_url = publicUrlData.publicUrl;
+        }
+      }
+
+      const { error } = await db.from('equipments').update(updatePayload).eq('id', id);
+
+      if (error) {
+        showToast('บันทึกไม่สำเร็จ: ' + error.message, 'error');
+      } else {
+        showToast('แก้ไขอุปกรณ์เรียบร้อย!', 'success');
+        closeEditModal();
+        fetchEquipments();
+      }
+
+      btn.innerText = "บันทึกการแก้ไข";
+      btn.disabled = false;
+    }
+
+    async function handleDeleteEquipment(id) {
+      const item = allEquipments.find(i => i.id === id);
+      if (!item) return;
+      const ok = await showConfirm(`ลบ "${item.name}" ออกจากระบบ? การลบจะลบประวัติการยืม-เบิกทั้งหมดของอุปกรณ์นี้ไปด้วย และไม่สามารถกู้คืนได้`);
+      if (!ok) return;
+
+      const { error } = await db.from('equipments').delete().eq('id', id);
+      if (error) {
+        showToast('ลบไม่สำเร็จ: ' + error.message, 'error');
+      } else {
+        showToast('ลบอุปกรณ์เรียบร้อยแล้ว', 'success');
+        fetchEquipments();
+      }
+    }
+
+    // --- Self-service Return Request (Public) ---
+    function openSelfReturnModal() {
+      document.getElementById('self-return-results').innerHTML = '';
+      document.getElementById('self-return-search-form').reset();
+      const modal = document.getElementById('self-return-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeSelfReturnModal() {
+      const modal = document.getElementById('self-return-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function handleSelfReturnSearch(e) {
+      e.preventDefault();
+      const phone = document.getElementById('self-return-phone').value.trim();
+      const results = document.getElementById('self-return-results');
+      results.innerHTML = '<p class="text-slate-400 text-sm py-2">กำลังค้นหา...</p>';
+
+      const { data, error } = await db
+        .from('borrow_records')
+        .select(`id, quantity, expected_return_date, equipment_id, equipments(name, code)`)
+        .eq('status', 'BORROWED')
+        .eq('borrower_contact', phone);
+
+      if (error) {
+        showToast('ค้นหาล้มเหลว: ' + error.message, 'error');
+        results.innerHTML = '';
+        return;
+      }
+
+      if (data.length === 0) {
+        results.innerHTML = '<div class="p-4 bg-slate-100 rounded-xl text-slate-500 text-center text-sm">ไม่พบรายการที่ยืมค้างอยู่สำหรับเบอร์นี้</div>';
+        return;
+      }
+
+      results.innerHTML = data.map(record => `
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between gap-2">
+          <div>
+            <p class="text-sm font-medium text-slate-800">${record.equipments?.name || 'อุปกรณ์'} (${record.equipments?.code})</p>
+            <p class="text-xs text-slate-500">จำนวน ${record.quantity} ชิ้น | กำหนดคืน ${record.expected_return_date}</p>
+          </div>
+          <button onclick="handleSelfReturnConfirm('${record.id}', this)" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition whitespace-nowrap">แจ้งคืน</button>
+        </div>
+      `).join('');
+    }
+
+    async function handleSelfReturnConfirm(recordId, btn) {
+      btn.disabled = true;
+      btn.innerText = "กำลังแจ้ง...";
+
+      const { error } = await db.from('borrow_records').update({ status: 'RETURN_REQUESTED' }).eq('id', recordId);
+
+      if (error) {
+        showToast('แจ้งคืนไม่สำเร็จ: ' + error.message, 'error');
+        btn.disabled = false;
+        btn.innerText = "แจ้งคืน";
+      } else {
+        showToast('แจ้งคืนเรียบร้อย เจ้าหน้าที่จะตรวจสอบและยืนยันอีกครั้ง', 'success');
+        btn.closest('div.p-3').remove();
+      }
     }
 
     fetchEquipments();
