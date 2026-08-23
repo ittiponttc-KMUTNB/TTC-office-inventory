@@ -93,19 +93,27 @@
         </select>
       </div>
 
-      <div id="equipment-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div id="equipment-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
         <!-- Skeleton loading state -->
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden animate-pulse">
-          <div class="h-44 bg-slate-200"></div>
-          <div class="p-4 space-y-3"><div class="h-3 bg-slate-200 rounded w-1/3"></div><div class="h-4 bg-slate-200 rounded w-3/4"></div><div class="h-3 bg-slate-200 rounded w-1/2"></div></div>
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden animate-pulse">
+          <div class="h-24 bg-slate-200"></div>
+          <div class="p-2.5 space-y-2"><div class="h-3 bg-slate-200 rounded w-3/4"></div><div class="h-2.5 bg-slate-200 rounded w-1/2"></div></div>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden animate-pulse">
-          <div class="h-44 bg-slate-200"></div>
-          <div class="p-4 space-y-3"><div class="h-3 bg-slate-200 rounded w-1/3"></div><div class="h-4 bg-slate-200 rounded w-3/4"></div><div class="h-3 bg-slate-200 rounded w-1/2"></div></div>
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden animate-pulse">
+          <div class="h-24 bg-slate-200"></div>
+          <div class="p-2.5 space-y-2"><div class="h-3 bg-slate-200 rounded w-3/4"></div><div class="h-2.5 bg-slate-200 rounded w-1/2"></div></div>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden animate-pulse hidden sm:block">
-          <div class="h-44 bg-slate-200"></div>
-          <div class="p-4 space-y-3"><div class="h-3 bg-slate-200 rounded w-1/3"></div><div class="h-4 bg-slate-200 rounded w-3/4"></div><div class="h-3 bg-slate-200 rounded w-1/2"></div></div>
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden animate-pulse hidden sm:block">
+          <div class="h-24 bg-slate-200"></div>
+          <div class="p-2.5 space-y-2"><div class="h-3 bg-slate-200 rounded w-3/4"></div><div class="h-2.5 bg-slate-200 rounded w-1/2"></div></div>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden animate-pulse hidden lg:block">
+          <div class="h-24 bg-slate-200"></div>
+          <div class="p-2.5 space-y-2"><div class="h-3 bg-slate-200 rounded w-3/4"></div><div class="h-2.5 bg-slate-200 rounded w-1/2"></div></div>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden animate-pulse hidden xl:block">
+          <div class="h-24 bg-slate-200"></div>
+          <div class="p-2.5 space-y-2"><div class="h-3 bg-slate-200 rounded w-3/4"></div><div class="h-2.5 bg-slate-200 rounded w-1/2"></div></div>
         </div>
       </div>
     </section>
@@ -197,12 +205,22 @@
       <form id="borrow-form" onsubmit="handleBorrowSubmit(event)" class="space-y-3">
         <input type="hidden" id="borrow-item-id">
         <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">ชื่อ-สกุล / รหัสนิสิต *</label>
+          <label class="block text-xs font-medium text-slate-600 mb-1">ชื่อ-สกุล *</label>
           <input type="text" id="borrow-name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">เบอร์ติดต่อ / Email</label>
-          <input type="text" id="borrow-contact" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+          <label class="block text-xs font-medium text-slate-600 mb-1">เบอร์โทรศัพท์ *</label>
+          <input type="tel" id="borrow-contact" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">รหัสนิสิต/บุคลากร (ถ้ามี)</label>
+            <input type="text" id="borrow-student-id" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Email (ถ้ามี)</label>
+            <input type="email" id="borrow-email" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
@@ -493,11 +511,6 @@
       return icon(map[category] || 'box', cls);
     }
 
-    function getTypeBadge(itemType) {
-      if (itemType === 'CONSUME') return `<span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border font-medium bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200">${icon('box', 'w-3 h-3')}ใช้แล้วหมดไป</span>`;
-      return `<span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border font-medium bg-cyan-100 text-cyan-700 border-cyan-200">${icon('refresh', 'w-3 h-3')}ยืม-คืน</span>`;
-    }
-
     // --- Stats ---
     function renderStats(items) {
       const totalTypes = items.length;
@@ -555,10 +568,10 @@
     // --- Catalog ---
     async function fetchEquipments() {
       const grid = document.getElementById('equipment-grid');
-      grid.innerHTML = Array(4).fill(`
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden animate-pulse">
-          <div class="h-44 bg-slate-200"></div>
-          <div class="p-4 space-y-3"><div class="h-3 bg-slate-200 rounded w-1/3"></div><div class="h-4 bg-slate-200 rounded w-3/4"></div><div class="h-3 bg-slate-200 rounded w-1/2"></div></div>
+      grid.innerHTML = Array(10).fill(`
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden animate-pulse">
+          <div class="h-24 bg-slate-200"></div>
+          <div class="p-2.5 space-y-2"><div class="h-3 bg-slate-200 rounded w-3/4"></div><div class="h-2.5 bg-slate-200 rounded w-1/2"></div></div>
         </div>
       `).join('');
 
@@ -597,32 +610,27 @@
         const actionFn = isConsume ? 'openWithdrawModal' : 'openBorrowModal';
         const actionColor = isConsume ? 'bg-fuchsia-600 hover:bg-fuchsia-700' : 'bg-indigo-600 hover:bg-indigo-700';
         return `
-          <div class="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col animate-fade-in" style="animation-delay:${Math.min(idx, 12) * 40}ms">
-            <div class="h-44 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden relative">
+          <div class="group bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 flex flex-col animate-fade-in" style="animation-delay:${Math.min(idx, 16) * 25}ms">
+            <div class="h-24 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden relative">
               ${img
                 ? `<img src="${img}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">`
-                : `<div class="w-full h-full flex items-center justify-center text-slate-400">${getCategoryIcon(item.category, 'w-12 h-12')}</div>`}
-              ${isLow ? `<span class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-bold shadow">สต็อกต่ำ</span>` : ''}
+                : `<div class="w-full h-full flex items-center justify-center text-slate-400">${getCategoryIcon(item.category, 'w-8 h-8')}</div>`}
+              ${isLow ? `<span class="absolute top-1 right-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-bold shadow">ต่ำ</span>` : ''}
             </div>
-            <div class="p-4 flex-1 flex flex-col justify-between">
+            <div class="p-2.5 flex-1 flex flex-col justify-between gap-2">
               <div>
-                <div class="flex flex-wrap gap-1">
-                  <span class="inline-block text-[11px] px-2 py-0.5 rounded-full border font-medium ${catColor}">${item.category}</span>
-                  ${getTypeBadge(item.item_type)}
-                </div>
-                <h3 class="font-semibold text-slate-800 text-base mt-2 leading-snug">${item.name}</h3>
-                <p class="text-xs text-slate-400 mt-0.5">รหัส: ${item.code}</p>
+                <span class="inline-block text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${catColor}">${item.category}</span>
+                <h3 class="font-medium text-slate-800 text-xs mt-1 leading-snug line-clamp-2" title="${item.name}">${item.name}</h3>
               </div>
-              <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                <div class="flex items-center gap-1.5">
-                  <span class="w-2 h-2 rounded-full ${isAvail ? 'bg-emerald-500' : 'bg-rose-400'}"></span>
-                  <span class="text-xs text-slate-500">คงเหลือ <b class="${isAvail ? 'text-emerald-600' : 'text-rose-500'}">${item.available_qty}/${item.total_qty}</b></span>
+              <div class="flex items-center justify-between gap-1">
+                <span class="text-[11px] text-slate-500">คงเหลือ <b class="${isAvail ? 'text-emerald-600' : 'text-rose-500'}">${item.available_qty}</b></span>
+                <div class="flex items-center gap-1">
+                  ${isAdmin && isConsume ? `<button onclick="openRestockModal('${item.id}')" title="เติมสต็อก" class="w-7 h-7 rounded-md flex items-center justify-center text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition">${icon('refresh', 'w-3.5 h-3.5')}</button>` : ''}
+                  <button onclick="${actionFn}('${item.id}')" ${!isAvail ? 'disabled' : ''} title="${isAvail ? actionLabel : 'หมด'}" class="w-7 h-7 rounded-md flex items-center justify-center ${isAvail ? actionColor + ' text-white shadow-sm' : 'bg-slate-100 text-slate-400 cursor-not-allowed'} transition">
+                    ${icon(isAvail ? actionIcon : 'x', 'w-3.5 h-3.5')}
+                  </button>
                 </div>
-                <button onclick="${actionFn}('${item.id}')" ${!isAvail ? 'disabled' : ''} class="px-4 py-1.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 ${isAvail ? actionColor + ' text-white shadow-sm' : 'bg-slate-100 text-slate-400 cursor-not-allowed'} transition">
-                  ${isAvail ? icon(actionIcon, 'w-3.5 h-3.5') : ''}${isAvail ? actionLabel : 'หมด'}
-                </button>
               </div>
-              ${isAdmin && isConsume ? `<button onclick="openRestockModal('${item.id}')" class="mt-2 w-full text-xs text-emerald-700 border border-emerald-200 bg-emerald-50 rounded-lg py-1.5 hover:bg-emerald-100 transition font-medium inline-flex items-center justify-center gap-1.5">${icon('refresh', 'w-3.5 h-3.5')}เติมสต็อก</button>` : ''}
             </div>
           </div>
         `;
@@ -636,7 +644,7 @@
 
       const { data, error } = await db
         .from('borrow_records')
-        .select(`id, quantity, expected_return_date, borrower_name, borrower_contact, equipment_id, equipments(name, code)`)
+        .select(`id, quantity, expected_return_date, borrower_name, borrower_contact, student_id, equipment_id, equipments(name, code)`)
         .eq('status', 'BORROWED')
         .order('expected_return_date', { ascending: true });
 
@@ -654,7 +662,7 @@
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
             <h4 class="font-semibold text-slate-800">${record.equipments?.name || 'อุปกรณ์'} (${record.equipments?.code})</h4>
-            <p class="text-xs text-slate-600">ผู้ยืม: <span class="font-medium text-slate-800">${record.borrower_name}</span> | ติดต่อ: ${record.borrower_contact || '-'}</p>
+            <p class="text-xs text-slate-600">ผู้ยืม: <span class="font-medium text-slate-800">${record.borrower_name}</span>${record.student_id ? ` (${record.student_id})` : ''} | โทร: ${record.borrower_contact || '-'}</p>
             <p class="text-xs text-slate-500">จำนวน: <span class="font-bold text-indigo-600">${record.quantity} ชิ้น</span> | กำหนดคืน: <span class="font-medium text-rose-600">${record.expected_return_date}</span></p>
           </div>
           <button onclick="handleReturn('${record.id}', '${record.equipment_id}', ${record.quantity})" class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition inline-flex items-center justify-center gap-1.5">
@@ -732,6 +740,8 @@
       const equipment_id = document.getElementById('borrow-item-id').value;
       const borrower_name = document.getElementById('borrow-name').value;
       const borrower_contact = document.getElementById('borrow-contact').value;
+      const student_id = document.getElementById('borrow-student-id').value;
+      const borrower_email = document.getElementById('borrow-email').value;
       const quantity = parseInt(document.getElementById('borrow-qty').value);
       const expected_return = document.getElementById('borrow-date').value;
 
@@ -740,7 +750,9 @@
         p_borrower_name: borrower_name,
         p_borrower_contact: borrower_contact,
         p_quantity: quantity,
-        p_expected_return: expected_return
+        p_expected_return: expected_return,
+        p_student_id: student_id || null,
+        p_borrower_email: borrower_email || null
       });
 
       if (error || data !== true) {
